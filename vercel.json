@@ -14,7 +14,7 @@
       }
     ],
     "routes": [
-      { "src": "/(.*)", "dest": "server/$1" },
+      { "src": "/api/(.*)", "dest": "server/$1" },
       { "src": "/(.*)", "dest": "mathnode/$1" }
     ]
   }
