@@ -2,10 +2,10 @@
     "version": 2,
     "builds": [
       {
-        "src": "mathnode/package.json",
+        "src": "mathnotes/package.json",
         "use": "@vercel/static-build",
         "config": {
-          "distDir": "mathnode/build"
+          "distDir": "mathnotes/build"
         }
       },
       {
@@ -14,8 +14,8 @@
       }
     ],
     "routes": [
-      { "src": "/api/(.*)", "dest": "server/$1" },
-      { "src": "/(.*)", "dest": "mathnode/$1" }
+      { "src": "/(.*)", "dest": "server/$1" },
+      { "src": "/(.*)", "dest": "mathnotes/$1" }
     ]
   }
   
