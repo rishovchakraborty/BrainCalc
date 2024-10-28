@@ -43,3 +43,8 @@ Welcome to **BrainCalc.ai**, a state-of-the-art smart calculator that leverages 
 ```
 
 
+4. **Demo Video**
+
+
+https://github.com/user-attachments/assets/14eaa3ab-a554-4e24-b37f-0cc97b998530
+
