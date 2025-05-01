@@ -4,7 +4,7 @@ Welcome to **BrainCalc.ai**, a state-of-the-art smart calculator that leverages 
 
 ## Technologies Used
 
-- **Frontend:** React
+- **Frontend:** React Js
 - **Backend:** Python with FastAPI
 - **AI/ML:** Advanced algorithms for smart computations
 
