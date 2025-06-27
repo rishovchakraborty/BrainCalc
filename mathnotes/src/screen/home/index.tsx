@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Draggable from 'react-draggable';
 import { SWATCHES } from '@/constants';
+import { ResultCard } from '@/components/ResultCard';
+import { PlayIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 interface GeneratedResult {
     expression: string;
@@ -25,6 +27,7 @@ export default function Home() {
     const [result, setResult] = useState<GeneratedResult>();
     const [latexPosition, setLatexPosition] = useState({ x: 10, y: 200 });
     const [latexExpression, setLatexExpression] = useState<Array<string>>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (latexExpression.length > 0 && window.MathJax) {
@@ -140,6 +143,7 @@ export default function Home() {
 
         if (canvas) {
             try {
+                setLoading(true);
                 const response = await axios({
                     method: 'post',
                     url: `${import.meta.env.VITE_API_URL}/calculate`,
@@ -179,67 +183,87 @@ export default function Home() {
                 const centerY = (minY + maxY) / 2;
 
                 setLatexPosition({ x: centerX, y: centerY });
-                resp.data.forEach((data: Response) => {
-                    setTimeout(() => {
-                        setResult({
-                            expression: data.expr,
-                            answer: data.result
-                        });
-                    }, 1000);
-                });
+                // Set result immediately, no delay
+                if (resp.data && resp.data.length > 0) {
+                    const data = resp.data[0];
+                    setResult({
+                        expression: data.expr,
+                        answer: data.result
+                    });
+                }
+                setLoading(false);
             } catch (error) {
+                setLoading(false);
                 console.error('Error in runRoute:', error);
             }
         }
     };
 
     return (
-        <div className='relative  w-screen h-screen bg-gray-900'>
-            <div className='absolute top-4 left-4 grid grid-cols-3 gap-40 z-20'>
-                <Button
-                    onClick={() => setReset(true)}
-                    className='bg-red-600 text-white hover:bg-red-700'
-                    variant='default'
-                >
-                    Reset
-                </Button>
-                <Group>
-                    {SWATCHES.map((swatch) => (
-                        <ColorSwatch
-                            key={swatch}
-                            color={swatch}
-                            onClick={() => setColor(swatch)}
-                            className='cursor-pointer border-2 border-gray-700'
-                        />
-                    ))}
-                </Group>
-                <Button
-                    onClick={runRoute}
-                    className='bg-green-600 text-white hover:bg-green-700'
-                    variant='default'
-                >
-                    Run
-                </Button>
+        <div className="relative w-screen h-screen bg-gray-900 flex flex-col items-center">
+            {/* Modern Header */}
+            <header className="w-full py-8 flex flex-col items-center bg-gradient-to-b from-gray-900 to-gray-800 shadow-lg z-40">
+                <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">BrainCalc</h1>
+                <p className="text-lg text-gray-300 max-w-xl text-center">A modern, AI-powered math workspace. Draw, calculate, and visualize math with ease!</p>
+            </header>
+            {/* Modern Toolbar */}
+            <div className="relative z-30 w-full flex flex-col items-center">
+                <div className="mt-6 mb-4 flex flex-row items-center justify-center gap-8 bg-gray-800/80 rounded-xl px-8 py-4 shadow-lg border border-gray-700">
+                    {/* Color Palette */}
+                    <div className="flex flex-col items-center mr-8">
+                        <span className="text-gray-300 text-sm mb-2">Pencil Colors</span>
+                        <div className="flex flex-row gap-2">
+                            {SWATCHES.map((swatch) => (
+                                <button
+                                    key={swatch}
+                                    onClick={() => setColor(swatch)}
+                                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${color === swatch ? 'border-yellow-400 scale-110 shadow-lg' : 'border-gray-600'} focus:outline-none`}
+                                    style={{ background: swatch }}
+                                    aria-label={`Select color ${swatch}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                    {/* Run Button */}
+                    <button
+                        onClick={runRoute}
+                        className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition-all text-lg focus:outline-none"
+                    >
+                        <PlayIcon className="w-6 h-6" />
+                        Run
+                    </button>
+                    {/* Reset Button */}
+                    <button
+                        onClick={() => setReset(true)}
+                        className="flex items-center gap-2 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow transition-all text-lg focus:outline-none ml-4"
+                    >
+                        <TrashIcon className="w-6 h-6" />
+                        Reset
+                    </button>
+                </div>
             </div>
+            {/* Canvas */}
             <canvas
                 ref={canvasRef}
-                className='absolute top-0 left-0 w-full h-full'
+                className="absolute top-0 left-0 w-full h-full"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseOut={stopDrawing}
             />
-            {latexExpression && latexExpression.map((latex, index) => (
-                <Draggable
-                    key={index}
-                    defaultPosition={latexPosition}
-                    onStop={(e, data) => setLatexPosition({ x: data.x, y: data.y })}
-                >
-                    <div className="absolute p-4 text-white bg-gray-800 rounded shadow-md">
-                        <div className="latex-content" dangerouslySetInnerHTML={{ __html: latex }} />
-                    </div>
-                </Draggable>
-            ))}
+            {/* Loading Spinner */}
+            {loading && (
+                <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-40 flex flex-col items-center">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <span className="text-white text-lg">Solving...</span>
+                </div>
+            )}
+            {/* Result Display with animation */}
+            {result && !loading && (
+                <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-xl transition-all duration-700 ease-out animate-fade-in">
+                    <ResultCard expression={result.expression} answer={result.answer} />
+                </div>
+            )}
         </div>
     );
 }
